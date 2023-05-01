@@ -23,11 +23,15 @@ public class StatisticMiddleware
     {
         string path = context.Request.Path;
 
-        var staticRegTask = Task.Run(
-            () => _statisticService.RegisterVisitAsync(path)
-                .ConfigureAwait(false)
-                .GetAwaiter().OnCompleted(UpdateHeaders));
+        Task staticRegTask = Task.Run(
+            async () =>
+            {
+                await _statisticService.RegisterVisitAsync(path).ConfigureAwait(false);
+                UpdateHeaders();
+            });
         Console.WriteLine(staticRegTask.Status); // just for debugging purposes
+
+        await staticRegTask; //wait until task finishes
 
         void UpdateHeaders()
         {
@@ -36,7 +40,6 @@ public class StatisticMiddleware
                 _statisticService.GetVisitsCountAsync(path).GetAwaiter().GetResult().ToString());
         }
 
-        Thread.Sleep(3000); // without this the statistic counter does not work
         await _next(context);
     }
 }
