@@ -29,12 +29,13 @@ internal class Program
         AskN();
 
         var input = Console.ReadLine();
-        while (input.Trim().ToUpper() != "Q")
+        while (input?.Trim().ToUpper() != "Q")
         {
             CancellationTokenSource cancellationTokenSource = new();
-            if (int.TryParse(input, out var n))
+            Task calculateTask = null;
+            if (int.TryParse(input, out int n))
             {
-                CalculateSum(n, cancellationTokenSource.Token);
+                calculateTask = CalculateSum(n, cancellationTokenSource.Token);
             }
             else
             {
@@ -44,6 +45,10 @@ internal class Program
 
             input = Console.ReadLine();
             cancellationTokenSource.Cancel();
+            if (calculateTask != null)
+            {
+                await calculateTask;
+            }
         }
 
         Console.WriteLine("Press any key to continue");

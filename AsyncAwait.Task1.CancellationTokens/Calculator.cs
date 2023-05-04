@@ -6,9 +6,8 @@ namespace AsyncAwait.Task1.CancellationTokens;
 internal static class Calculator
 {
     // todo: change this method to support cancellation token
-    public static Task<long> CalculateAsync(int n , CancellationToken token)
-    {
-        return Task.Factory.StartNew(() =>
+    public static Task<long> CalculateAsync(int n , CancellationToken token) =>
+        Task.Factory.StartNew(() =>
         {
             long sum = 0;
 
@@ -22,6 +21,5 @@ internal static class Calculator
             }
 
             return sum;
-        });
-    }
+        }, token);
 }
