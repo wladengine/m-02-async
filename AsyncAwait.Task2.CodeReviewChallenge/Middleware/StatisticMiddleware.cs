@@ -1,9 +1,11 @@
 ﻿using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using AsyncAwait.Task2.CodeReviewChallenge.Headers;
 using CloudServices.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace AsyncAwait.Task2.CodeReviewChallenge.Middleware;
 
@@ -23,23 +25,14 @@ public class StatisticMiddleware
     {
         string path = context.Request.Path;
 
-        Task staticRegTask = Task.Run(
-            async () =>
-            {
-                await _statisticService.RegisterVisitAsync(path).ConfigureAwait(false);
-                UpdateHeaders();
-            });
-        Console.WriteLine(staticRegTask.Status); // just for debugging purposes
+        await _statisticService.RegisterVisitAsync(path).ConfigureAwait(false);
 
-        await staticRegTask; //wait until task finishes
-
-        void UpdateHeaders()
-        {
-            context.Response.Headers.Add(
-                CustomHttpHeaders.TotalPageVisits,
-                _statisticService.GetVisitsCountAsync(path).GetAwaiter().GetResult().ToString());
-        }
+        long count = await _statisticService.GetVisitsCountAsync(path);
+        context.Response.Headers.Add(
+            CustomHttpHeaders.TotalPageVisits,
+            count.ToString());
 
         await _next(context);
     }
+    
 }
