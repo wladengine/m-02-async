@@ -25,9 +25,10 @@ public class StatisticMiddleware
     {
         string path = context.Request.Path;
 
-        await _statisticService.RegisterVisitAsync(path);
+        Task<long> visitsCountTask = _statisticService.GetVisitsCountAsync(path);
+        _statisticService.RegisterVisitAsync(path);
 
-        long count = await _statisticService.GetVisitsCountAsync(path);
+        long count = await visitsCountTask + 1;
         context.Response.Headers.Add(
             CustomHttpHeaders.TotalPageVisits,
             count.ToString());
