@@ -25,7 +25,7 @@ public class StatisticMiddleware
     {
         string path = context.Request.Path;
 
-        await _statisticService.RegisterVisitAsync(path).ConfigureAwait(false);
+        await _statisticService.RegisterVisitAsync(path);
 
         long count = await _statisticService.GetVisitsCountAsync(path);
         context.Response.Headers.Add(
