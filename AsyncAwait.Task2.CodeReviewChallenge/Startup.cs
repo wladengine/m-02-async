@@ -1,4 +1,6 @@
-﻿using AsyncAwait.Task2.CodeReviewChallenge.Extensions;
+﻿using System.Threading;
+using AsyncAwait.Task2.CodeReviewChallenge;
+using AsyncAwait.Task2.CodeReviewChallenge.Extensions;
 using AsyncAwait.Task2.CodeReviewChallenge.Models.Support;
 using AsyncAwait.Task2.CodeReviewChallenge.Services;
 using CloudServices;
@@ -9,6 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading.Tasks;
 
 namespace AsyncAwait.CodeReviewChallenge;
 public class Startup
@@ -30,6 +33,7 @@ public class Startup
             options.MinimumSameSitePolicy = SameSiteMode.None;
         });
 
+        services.AddSingleton<IBackgroundTaskScheduler, BackgroundTaskScheduler>();
         services.AddSingleton<IStatisticService, CloudStatisticService>();
         services.AddSingleton<ISupportService, CloudSupportService>();
         services.AddSingleton<IPrivacyDataService, PrivacyDataService>();
@@ -39,7 +43,7 @@ public class Startup
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IBackgroundTaskScheduler taskScheduler)
     {
         if (false && env.IsDevelopment())
             app.UseDeveloperExceptionPage();
@@ -50,6 +54,10 @@ public class Startup
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseCookiePolicy();
+
+        CancellationToken cancellationToken = 
+            app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>().ApplicationStopping;
+        _ = taskScheduler.StartAsync(cancellationToken);
 
         app.UseMvc(routes =>
         {
